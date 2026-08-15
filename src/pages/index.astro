@@ -1,0 +1,18 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="COMP4020 prototype">
+  <h1>COMP4020 prototype</h1>
+  <p data-testid="intro">
+    Replace this with your prototype. This week's brief is on the course website;
+    <code>spec/README.md</code> explains how the checks in this repo relate to it.
+  </p>
+</Layout>
+
+<script>
+  const intro = document.querySelector<HTMLElement>('[data-testid="intro"]');
+  if (intro) {
+    intro.dataset.ready = "true";
+  }
+</script>

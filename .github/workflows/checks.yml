@@ -42,7 +42,16 @@ jobs:
         if: ${{ !github.event.repository.is_template }}
         run: pnpm check:evidence
       - name: Check internal links
-        run: pnpm dlx linkinator ./dist --silent
+        # GitHub Pages serves this as a project site under /comp4020-ass1-zephyrieal/
+        # (see astro.config.mjs's `base`), so every internal href is generated
+        # with that prefix. Crawling ./dist directly serves it at the domain
+        # root instead, so every internal link 404s against a path that isn't
+        # real. --server-root roots the local server one level up so absolute
+        # links resolve exactly as they do on the live site.
+        run: |
+          mkdir -p /tmp/pages-root/comp4020-ass1-zephyrieal
+          cp -r dist/. /tmp/pages-root/comp4020-ass1-zephyrieal/
+          pnpm dlx linkinator comp4020-ass1-zephyrieal --server-root /tmp/pages-root --silent
       - name: Scan for committed secrets
         # Pinned, both halves: the SHA fixes the action's script, and `version`
         # fixes the scanner image, which otherwise floats on :latest. These two

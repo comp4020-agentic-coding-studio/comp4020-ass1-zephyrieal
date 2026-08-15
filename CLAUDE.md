@@ -2,7 +2,8 @@
 
 This is your starter repo for a COMP4020 prototype: a static site written in
 HTML/CSS/TypeScript that builds to plain HTML/CSS/JS and deploys to GitHub
-Pages. The **deployed site is what gets marked** --- not this repo, and not "it
+Pages. Built with Astro, carried forward from last week. The **deployed site is
+what gets marked** --- not this repo, and not "it
 works on my machine". It's marked live in Chrome against the deployed URL at two
 viewports --- 1920×1080 (desktop) and 390×844 (phone) --- and both count in
 full, so make that artefact good at both and use the checks below to know
@@ -97,22 +98,21 @@ CI machine, not proof the site is fast for real users.
 
 ## The stack is swappable
 
-Out of the box this is plain HTML/CSS/TypeScript on Vite, and every `.html` file
-in the repo is a page: add pages, link them, and the build picks them up with no
-config. That's a default, not a rule (unless the week's spec says otherwise).
-You can swap in Astro or any other static generator, because nothing in CI names
-a tool --- the whole contract is:
+This repo runs on Astro (kept from last week), not the template's Vite default:
+pages live in `src/pages/`, the shared shell is `src/layouts/Layout.astro`, and
+`astro.config.mjs` sets the GitHub Pages `base` path. That's a choice, not a
+rule (unless the week's spec says otherwise) --- nothing in CI names a tool ---
+the whole contract is:
 
 - `pnpm build` emits the complete site into `dist/`
 - the `package.json` scripts (`check`, `check:evidence`, `build`) keep working
 - whatever lands in `dist/` still passes the invariants in `spec/`
 
 Two things bite in a swap. The deployed site lives under a path
-(`…github.io/<repo>/`), so configure your generator's base path --- this
-template's Vite config uses relative asset URLs to sidestep that, but most
-generators (Astro included) need `base` set explicitly, and getting it wrong
-looks fine locally while every asset 404s on the live URL. And commit the
-updated `pnpm-lock.yaml`: CI installs with `--frozen-lockfile`.
+(`…github.io/<repo>/`), so configure your generator's base path --- Astro (like
+most generators) needs `base` set explicitly in `astro.config.mjs`, and getting
+it wrong looks fine locally while every asset 404s on the live URL. And commit
+the updated `pnpm-lock.yaml`: CI installs with `--frozen-lockfile`.
 
 ## Your process is part of the mark
 
