@@ -261,14 +261,15 @@ header nav a:hover {
   margin: 0.4rem 0 0;
 }
 
-/* Historical panel */
+/* Historical panel: stacked below Generation X in .left-column and flexed
+   to absorb whatever vertical space is left below it, the same way
+   .play-area fills out .simulation --- this is what keeps the left
+   column's total height matching the game/sidebar row (see .left-column
+   and .simulation below). Its box styling (background/border/padding) is
+   shared with the other panels below. */
 .historical-panel {
-  max-width: 700px;
-  margin: 1rem auto;
-  padding: 1rem 1.25rem;
-  background: var(--color-bg-alt);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  flex: 1 1 auto;
+  min-height: 8rem;
 }
 
 .historical-title {
@@ -280,9 +281,10 @@ header nav a:hover {
   margin: 0;
 }
 
-/* Workspace layout: Inspect (left) and Selection+Generation (right) flank
-   the game as two equal-width columns, so the play area reads as the
-   centred focus. */
+/* Workspace layout: Generation X and Historical stack in the left column,
+   Inspect and Next Generation stack in the right sidebar, and the game
+   column stretches to match the taller of those two stacked pairs (see
+   .simulation's align-self below), so the three read as one aligned row. */
 .workspace {
   display: grid;
   grid-template-columns: 280px 1fr 280px;
@@ -299,9 +301,30 @@ header nav a:hover {
   gap: 1rem;
 }
 
+/* Stretched to the row's height (set by whichever of .sidebar / this
+   column's own natural content is taller), overriding the grid's own
+   align-items: start just for this column --- .historical-panel above then
+   flexes to fill whatever leftover height that resolves to. */
+.left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-self: stretch;
+}
+
+/* Stretched to the sidebar's natural (Inspect + Next Generation) height,
+   overriding the grid's own align-items: start just for this column ---
+   .play-area below then flexes to fill whatever height that resolves to. */
+.simulation {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
 .inspector,
 .selection-panel,
-.generation-summary {
+.generation-summary,
+.historical-panel {
   background: var(--color-bg-alt);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -318,20 +341,26 @@ header nav a:hover {
   margin: 0 0 0.5rem;
 }
 
-/* Reserve room for the full selected-cavy layout (id line, personality,
-   5-trait list, breed/selected lines) up front, so clicking a cavy doesn't
-   grow the Inspect column and shift the game/right column beside it. Sized
-   generously above the actual populated-state content height (rather than
-   tuned to the exact pixel) since this column has no sibling to stretch
-   against for an exact match. */
+/* Reserve room for the full selected-cavy layout (personality, 5-trait list,
+   breed/selected lines) up front, so clicking a cavy doesn't grow the Inspect
+   panel and, in turn, the simulation column stretched to match it (see
+   .simulation's align-self above). Sized generously above the actual
+   populated-state content height, rather than tuned to the exact pixel.
+   display: flow-root gives this box its own block-formatting context, so its
+   last child's bottom margin (a bare "Click a cavy..." <p> vs. the populated
+   state's trait list/ul) can't collapse through and escape the box --- without
+   it, min-height still holds this element's own rect steady, but the escaped
+   margin still shifts the KEEP button below it by a few px depending on which
+   state was last rendered, which was the actual source of the size jitter. */
 .inspect-body {
   min-height: 18rem;
+  display: flow-root;
 }
 
 /* Simulation */
 .play-area {
   position: relative;
-  height: 60vh;
+  flex: 1 1 auto;
   min-height: 380px;
   background-color: #a3bf82;
   background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+CjxyZWN0IHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgZmlsbD0nI2EzYmY4MicvPgo8cGF0aCBkPSdNMTIgNjQgUTExIDU2IDEzIDUwJyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8cGF0aCBkPSdNMTcgNjQgUTE5IDU3IDE2IDUxJyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8cGF0aCBkPSdNNDAgNjQgUTM5IDU1IDQxIDQ5JyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8cGF0aCBkPSdNNDUgNjQgUTQ3IDU2IDQ0IDUwJyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8L3N2Zz4K");
@@ -620,7 +649,6 @@ button:hover:not(:disabled) {
   color: var(--color-accent-ink);
   border-color: var(--color-accent);
   width: 100%;
-  margin-top: 0.5rem;
   font-weight: 600;
 }
 
@@ -628,10 +656,29 @@ button:hover:not(:disabled) {
   filter: brightness(1.08);
 }
 
+/* .selected-count, .message, and .population-count are otherwise bare <p>s
+   ---  without an explicit margin they fall back to the UA default (~1em top
+   and bottom), which stacks into a much bigger gap than any other spacing in
+   this panel. Set all three the same way the rest of the file already treats
+   every other element here: an explicit margin, never a UA default. */
+.selected-count {
+  margin: 0 0 0.5rem;
+}
+
+/* line-height set explicitly (rather than inheriting body's 1.6) so it
+   matches the 1.2 in min-height below --- otherwise a real one-line message
+   renders at font-size * 1.6 while the empty state only reserves font-size *
+   1.2, and the panel grows the moment an actual message appears. */
 .message {
   min-height: 1.2em;
+  line-height: 1.2;
+  margin: 0.4rem 0 0;
   color: #8a2f1f;
   font-size: 0.85rem;
+}
+
+.population-count {
+  margin: 0 0 0.5rem;
 }
 
 /* Tables */

@@ -70,7 +70,9 @@ describe("core interaction: selecting parents and advancing a generation", () =>
     if (!firstCavy) throw new Error("no cavy rendered");
     firstCavy.click();
 
-    expect(byTestId(doc, "inspect").textContent).toContain(firstCavy.dataset.id ?? "");
+    const inspectAfter = byTestId(doc, "inspect").textContent ?? "";
+    expect(inspectAfter).not.toContain("Click a cavy to inspect it");
+    expect(inspectAfter).toContain("Selected as parent");
     expect(byTestId(doc, "selected-count").textContent).toContain("1 selected");
   });
 

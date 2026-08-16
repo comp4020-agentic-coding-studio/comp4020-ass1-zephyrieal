@@ -60,34 +60,13 @@ const WHEEK_TEXTS = ["Wheek!", "Wheek wheek!"];
 // drifts back and forth right at the centre.
 const FACING_DEADZONE = 10;
 
-// Placeholder textures standing in for each breed's real coat type — just
-// enough to tell breeds apart at a glance. Independent of coatHue, which
-// still carries colour.
-const BREED_TEXTURES: Record<Breed, string | null> = {
-  shorthair: null,
-  abyssinian:
-    "radial-gradient(circle at 25% 30%, rgb(0 0 0 / 25%) 0 10%, transparent 11%), radial-gradient(circle at 55% 20%, rgb(0 0 0 / 25%) 0 8%, transparent 9%), radial-gradient(circle at 70% 55%, rgb(0 0 0 / 25%) 0 10%, transparent 11%), radial-gradient(circle at 35% 70%, rgb(0 0 0 / 25%) 0 9%, transparent 10%)",
-  peruvian: "linear-gradient(180deg, transparent 50%, rgb(255 255 255 / 30%) 75%, transparent 100%)",
-  teddy:
-    "repeating-linear-gradient(45deg, rgb(0 0 0 / 14%) 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, rgb(0 0 0 / 14%) 0 2px, transparent 2px 5px)",
-  bald: "linear-gradient(rgb(255 235 225 / 55%), rgb(255 235 225 / 55%))",
-  crested: "radial-gradient(circle at 50% 12%, rgb(255 255 255 / 60%) 0 10%, transparent 11%)",
-  // Large irregular white patches over the base coat colour, standing in for
-  // the bicolour red-and-white patchwork typical of Andean meat-purpose cuy.
-  cuy: "radial-gradient(circle at 22% 65%, rgb(255 255 255 / 55%) 0 24%, transparent 25%), radial-gradient(circle at 68% 22%, rgb(255 255 255 / 55%) 0 20%, transparent 21%)",
-  // Plain, same as "shorthair" — a wild-type coat has no distinguishing
-  // pattern; that's the whole point of it predating any named breed.
-  wild: null,
-};
-
 // Breeds with real hand-drawn art. Each entry is the id of a <symbol> in one
 // of the parsed sprite sheets below — paths inside that symbol are pre-tagged
 // "coat-a"/"coat-b" (see src/assets/cavies/*.svg) so the two coat swatches can
 // be recoloured per cavy, while the black outline/eye paths, white patches,
-// and pink nose (untagged, or fixed colours) never change. Breeds without an
-// entry here keep the placeholder flat-circle + texture-overlay rendering
-// above.
-const BREED_ART: Partial<Record<Breed, string>> = {
+// and pink nose (untagged, or fixed colours) never change. Every Breed has an
+// entry here, so this is total rather than Partial.
+const BREED_ART: Record<Breed, string> = {
   shorthair: "cavy-body-shorthair",
   crested: "cavy-body-crested",
   abyssinian: "cavy-body-abyssinian",
@@ -425,23 +404,18 @@ export function createRenderer({ container, rng, onCavyClick }: CreateRendererOp
     el.dataset.id = cavy.id;
     el.setAttribute("aria-label", `Inspect cavy ${cavy.id}`);
     el.addEventListener("click", () => onCavyClick(cavy.id));
-    // Breed is fixed for a cavy's whole lifetime, so it's safe to decide once
-    // here whether this element gets real art or the placeholder flat circle.
-    const symbolId = BREED_ART[cavy.breed];
-    if (symbolId) {
-      el.classList.add("has-art");
-      const svgNs = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(svgNs, "svg");
-      svg.setAttribute("class", "cavy-svg");
-      svg.setAttribute("viewBox", "0 0 2048 2048");
-      const template = bodyTemplate(symbolId);
-      if (template) {
-        for (const child of Array.from(template.children)) {
-          svg.appendChild(document.importNode(child, true));
-        }
+    el.classList.add("has-art");
+    const svgNs = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNs, "svg");
+    svg.setAttribute("class", "cavy-svg");
+    svg.setAttribute("viewBox", "0 0 2048 2048");
+    const template = bodyTemplate(BREED_ART[cavy.breed]);
+    if (template) {
+      for (const child of Array.from(template.children)) {
+        svg.appendChild(document.importNode(child, true));
       }
-      el.appendChild(svg);
     }
+    el.appendChild(svg);
     const bubble = document.createElement("span");
     bubble.className = "wheek-bubble";
     bubble.setAttribute("aria-hidden", "true");
@@ -472,19 +446,13 @@ export function createRenderer({ container, rng, onCavyClick }: CreateRendererOp
     const { width, height } = cavySize(cavy);
     el.style.width = `${width}px`;
     el.style.height = `${height}px`;
-    if (BREED_ART[cavy.breed]) {
-      const { a, b } = naturalCoatColors(cavy.coatHue, cavy.breed);
-      const svg = el.querySelector(".cavy-svg");
-      for (const path of svg?.querySelectorAll(".coat-a") ?? []) {
-        path.setAttribute("fill", a);
-      }
-      for (const path of svg?.querySelectorAll(".coat-b") ?? []) {
-        path.setAttribute("fill", b);
-      }
-    } else {
-      const { h, s, l } = paletteColorAt(cavy.coatHue);
-      el.style.background = hslToHex(h, s, l);
-      el.style.backgroundImage = BREED_TEXTURES[cavy.breed] ?? "none";
+    const { a, b } = naturalCoatColors(cavy.coatHue, cavy.breed);
+    const svg = el.querySelector(".cavy-svg");
+    for (const path of svg?.querySelectorAll(".coat-a") ?? []) {
+      path.setAttribute("fill", a);
+    }
+    for (const path of svg?.querySelectorAll(".coat-b") ?? []) {
+      path.setAttribute("fill", b);
     }
     el.classList.toggle("selected", cavy.selected);
   }

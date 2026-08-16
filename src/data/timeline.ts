@@ -11,15 +11,15 @@ export interface Era {
   years: string;
 }
 
-export const TIMELINE_SPAN_GENERATIONS = 16;
+export const TIMELINE_SPAN_GENERATIONS = 8;
 
 export const ERAS: Era[] = [
   { id: "wild", label: "Wild Cavies", minGeneration: 1, years: "~6000 years ago" },
   { id: "early-interaction", label: "Early Human Interaction", minGeneration: 2, years: "~5000 years ago" },
-  { id: "andean-domestication", label: "Andean Domestication", minGeneration: 5, years: "~3000 years ago" },
-  { id: "european-history", label: "Cavies in European History", minGeneration: 9, years: "16th century" },
-  { id: "pets", label: "Guinea Pigs as Pets", minGeneration: 12, years: "19th–20th century" },
-  { id: "modern-breeds", label: "Modern Breeds", minGeneration: 16, years: "Today" },
+  { id: "andean-domestication", label: "Andean Domestication", minGeneration: 3, years: "~3000 years ago" },
+  { id: "european-history", label: "Cavies in European History", minGeneration: 5, years: "16th century" },
+  { id: "pets", label: "Guinea Pigs as Pets", minGeneration: 6, years: "19th–20th century" },
+  { id: "modern-breeds", label: "Modern Breeds", minGeneration: 8, years: "Today" },
 ];
 
 export function currentEra(generation: number): Era {

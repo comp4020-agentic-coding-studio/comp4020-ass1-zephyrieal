@@ -128,7 +128,7 @@ function assertPopulationSanity(pop: Cavy[]) {
 function renderStats() {
   const { population: count, averages, personalityCounts } = calculateStatistics(population);
   els.stats.innerHTML = `
-    <p>Population: ${count}</p>
+    <p class="population-count">Population: ${count}</p>
     <ul class="trait-list">
       ${NUMERIC_TRAITS.map(
         (trait) =>
@@ -143,6 +143,8 @@ function renderStats() {
     </ul>
   `;
 }
+
+let hasScrolledToFinalComparison = false;
 
 function renderComparison() {
   const current = calculateStatistics(population).averages;
@@ -166,7 +168,12 @@ function renderComparison() {
       </tbody>
     </table>
   `;
+  const wasHidden = els.finalComparisonSection.hidden;
   els.finalComparisonSection.hidden = generation < TIMELINE_SPAN_GENERATIONS;
+  if (wasHidden && !els.finalComparisonSection.hidden && !hasScrolledToFinalComparison) {
+    hasScrolledToFinalComparison = true;
+    els.finalComparisonSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 function renderTimeline() {
@@ -220,7 +227,6 @@ function renderInspect() {
     return;
   }
   els.inspect.innerHTML = `
-    <p><strong>${cavy.id}</strong></p>
     <p class="inspect-personality">Personality: <strong>${cavy.personality}</strong></p>
     <ul class="trait-list">
       ${NUMERIC_TRAITS.map(

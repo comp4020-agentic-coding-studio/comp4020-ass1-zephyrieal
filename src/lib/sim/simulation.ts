@@ -103,11 +103,11 @@ const WILD_BREED: Breed = "wild";
 // Named breeds are a later development than early domestication — real
 // selective, appearance-driven breeding only took off once cavies reached
 // Europe and were kept purely as pets, not working animals (see
-// data/timeline.ts's "european-history" era, minGeneration 9 — keep this in
+// data/timeline.ts's "european-history" era, minGeneration 5 — keep this in
 // sync if that threshold ever changes). Before that generation, inheritBreed
 // never lets a "wild" population mutate into a named breed, so the early
 // eras stay uniformly wild-type the way they would have been historically.
-const BREED_MUTATION_UNLOCK_GENERATION = 9;
+const BREED_MUTATION_UNLOCK_GENERATION = 5;
 
 // A fresh, unrelated population — used for generation 1 only. Every later
 // generation comes from breedPopulation() instead, so traits stay connected
@@ -166,9 +166,24 @@ export function inheritTrait(
 // Hue is circular (0 and 359 are neighbours), so averaging it like a normal
 // number would drag orange and violet toward a muddy green through the middle
 // of the wheel. This walks the short way round instead.
+//
+// A rare leap mutation also gives coatHue a small chance to land anywhere on
+// the wheel, not just within mutationSpread of the parents' colour. Ordinary
+// coat-colour genes (like white spotting) don't always arrive as a short step
+// from the parents' shade, and without this, wild founders (hue ~15-45) could
+// never realistically drift the ~150° to reach white (~240°) within this
+// simulation's short generation budget by ordinary drift alone. Either branch
+// still consumes exactly one more rng() call, so the seeded sequence doesn't
+// depend on which path was taken (same pattern as inheritBreed below).
+const HUE_LEAP_MUTATION_CHANCE = 0.04;
+
 export function inheritHue(hueA: number, hueB: number, rng: Rng, mutationSpread = 20): number {
   const diff = ((hueB - hueA + 540) % 360) - 180;
   const midpoint = (hueA + diff / 2 + 360) % 360;
+  const leapRolled = rng() < HUE_LEAP_MUTATION_CHANCE;
+  if (leapRolled) {
+    return rng() * 360;
+  }
   const variation = (rng() - 0.5) * 2 * mutationSpread;
   return (((midpoint + variation) % 360) + 360) % 360;
 }
@@ -274,7 +289,7 @@ export function advanceGeneration(
 ): AdvanceGenerationResult {
   const parents = population.filter((cavy) => cavy.selected);
   if (parents.length < MIN_PARENTS) {
-    throw new Error(`Select at least ${MIN_PARENTS} parents before advancing.`);
+    throw new Error(`You'll need at least ${MIN_PARENTS} parents!`);
   }
   const size = options.size ?? population.length;
   const nextGenerationNumber = generation + 1;
