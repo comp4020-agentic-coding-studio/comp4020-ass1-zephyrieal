@@ -23,14 +23,14 @@ import FinalComparison from "../components/FinalComparison.astro";
   <HistoricalPanel />
 
   <div class="workspace">
+    <CavyInspector />
     <Simulation />
     <div class="sidebar">
-      <CavyInspector />
       <SelectionPanel />
+      <GenerationSummary />
     </div>
   </div>
 
-  <GenerationSummary />
   <FinalComparison />
 </Layout>
 

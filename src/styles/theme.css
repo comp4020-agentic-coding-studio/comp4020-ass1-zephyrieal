@@ -15,6 +15,16 @@
   --font-display: georgia, "Iowan Old Style", "Palatino Linotype", serif;
   --font-ui: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
   --radius: 6px;
+
+  /* Shared with .final-comparison's max-width below (as
+     calc(var(--workspace-max-width) - 2rem)) so that section's edges stay
+     aligned with the game/side columns in .workspace instead of drifting out
+     of sync with a second hardcoded number — it must stay less than <main>'s
+     own max-width (1400px), otherwise <main> becomes the binding constraint
+     instead of this value and the calc() derivation for .final-comparison
+     silently stops matching (the exact bug fixed for
+     .generation-summary/.final-comparison previously). */
+  --workspace-max-width: 1300px;
 }
 
 * {
@@ -30,7 +40,7 @@ body {
 }
 
 main {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 0 3rem;
 }
@@ -270,12 +280,14 @@ header nav a:hover {
   margin: 0;
 }
 
-/* Workspace layout */
+/* Workspace layout: Inspect (left) and Selection+Generation (right) flank
+   the game as two equal-width columns, so the play area reads as the
+   centred focus. */
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 360px;
+  grid-template-columns: 280px 1fr 280px;
   gap: 1rem;
-  max-width: 1100px;
+  max-width: var(--workspace-max-width);
   margin: 1rem auto;
   padding: 0 1rem;
   align-items: start;
@@ -296,19 +308,6 @@ header nav a:hover {
   padding: 0.85rem 1.1rem;
 }
 
-/* .generation-summary lives outside .workspace (it's a full-width section
-   below it, not a sidebar child), so it inherits <main>'s box (max-width
-   1200px, no horizontal padding) instead of .workspace's (max-width 1100px,
-   further inset 1rem by padding for its game/sidebar children). Matching
-   max-width to workspace's content width (1100px minus that 1rem inset each
-   side) makes this card's edges land exactly on the game/columns' edges at
-   every viewport, instead of drifting wider as the two boxes' containing
-   blocks diverge. */
-.generation-summary {
-  max-width: calc(1100px - 2rem);
-  margin: 1rem auto;
-}
-
 .inspector h2,
 .selection-panel h2,
 .generation-summary h2 {
@@ -321,9 +320,12 @@ header nav a:hover {
 
 /* Reserve room for the full selected-cavy layout (id line, personality,
    5-trait list, breed/selected lines) up front, so clicking a cavy doesn't
-   grow the sidebar and shove the panels below it down the page. */
+   grow the Inspect column and shift the game/right column beside it. Sized
+   generously above the actual populated-state content height (rather than
+   tuned to the exact pixel) since this column has no sibling to stretch
+   against for an exact match. */
 .inspect-body {
-  min-height: 16rem;
+  min-height: 18rem;
 }
 
 /* Simulation */
@@ -683,13 +685,13 @@ td {
 
 /* Final comparison */
 
-/* Same containing-block mismatch as .generation-summary above: this section
-   sits directly in <main> (max-width 1200px, no horizontal padding) rather
-   than inside .workspace (max-width 1100px, 1rem inset), so its max-width
-   is set to match .workspace's content width instead of an unrelated value,
-   keeping its edges aligned with the game/sidebar columns above it. */
+/* Same containing-block mismatch as .workspace's columns: this section sits
+   directly in <main> rather than inside .workspace, so its max-width is
+   derived from the same --workspace-max-width custom property instead of a
+   second hardcoded value, keeping its edges aligned with the columns above
+   it even if the workspace width changes later. */
 .final-comparison {
-  max-width: calc(1100px - 2rem);
+  max-width: calc(var(--workspace-max-width) - 2rem);
   margin: 1.5rem auto;
   padding: 1rem 1.25rem;
   background: var(--color-bg-alt);
