@@ -59,7 +59,10 @@ function qs<T extends Element>(testId: string): T {
 }
 
 const els = {
-  seed: qs<HTMLElement>("seed"),
+  landing: qs<HTMLElement>("landing-section"),
+  gameView: qs<HTMLElement>("game-view"),
+  startButton: qs<HTMLButtonElement>("start-button"),
+  heroHeading: qs<HTMLElement>("hero-heading"),
   generation: qs<HTMLElement>("generation"),
   selectedCount: qs<HTMLElement>("selected-count"),
   stats: qs<HTMLElement>("stats"),
@@ -108,8 +111,6 @@ const generationHistory: Array<{ generation: number } & Statistics> = [{ generat
 // generation, or stay put because the player deliberately looked backward.
 let focusedEraId: string = currentEra(generation).id;
 let followCurrentEra = true;
-
-els.seed.textContent = seed;
 
 function assertPopulationSanity(pop: Cavy[]) {
   if (pop.length !== POPULATION_SIZE) {
@@ -314,5 +315,18 @@ for (const button of eraButtons) {
   });
 }
 
-renderAll();
-renderer.start();
+// Deferred until the player clicks Start: syncPopulation (called from
+// renderAll) and the RAF loop in renderer.start() both read the play area's
+// real layout bounds to place and clamp cavies. Running either while the
+// game view is still `hidden` (bounds 0×0) would pin every cavy near the
+// corner for as long as the landing screen shows, then look broken the
+// moment it's revealed.
+function startGame() {
+  els.landing.hidden = true;
+  els.gameView.hidden = false;
+  els.heroHeading.focus();
+  renderAll();
+  renderer.start();
+}
+
+els.startButton.addEventListener("click", startGame, { once: true });

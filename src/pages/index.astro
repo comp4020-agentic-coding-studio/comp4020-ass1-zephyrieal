@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Landing from "../components/Landing.astro";
 import Timeline from "../components/Timeline.astro";
 import HistoricalPanel from "../components/HistoricalPanel.astro";
 import Simulation from "../components/Simulation.astro";
@@ -10,32 +11,32 @@ import FinalComparison from "../components/FinalComparison.astro";
 ---
 
 <Layout title="Interactive Guinea Pig Domestication">
-  <section class="hero">
-    <h1>Interactive Guinea Pig Domestication</h1>
-    <p class="hero-intro">
-      Six thousand years ago, every wild cavy fled anything that moved. Select the
-      parents of each new generation and watch a population slowly become something
-      else &mdash; run <span class="seed" data-testid="seed"></span>.
-    </p>
-  </section>
+  <Landing />
 
-  <Timeline />
+  <div class="game-view" data-testid="game-view" hidden>
+    <section class="hero">
+      <h2 tabindex="-1" data-testid="hero-heading">Interactive Guinea Pig Domestication</h2>
+    </section>
 
-  <div class="workspace">
-    <div class="left-column">
-      <GenerationSummary />
-      <HistoricalPanel />
+    <Timeline />
+
+    <div class="workspace">
+      <div class="left-column">
+        <GenerationSummary />
+        <HistoricalPanel />
+      </div>
+      <Simulation />
+      <div class="sidebar">
+        <CavyInspector />
+        <SelectionPanel />
+      </div>
     </div>
-    <Simulation />
-    <div class="sidebar">
-      <CavyInspector />
-      <SelectionPanel />
-    </div>
+
+    <FinalComparison />
   </div>
-
-  <FinalComparison />
 </Layout>
 
 <script>
+  import "../scripts/landing";
   import "../scripts/app";
 </script>

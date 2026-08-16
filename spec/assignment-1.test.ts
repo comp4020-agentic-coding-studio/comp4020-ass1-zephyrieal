@@ -44,6 +44,10 @@ function renderPage(): JSDOM {
   const script = instance.window.document.createElement("script");
   script.textContent = bundle;
   instance.window.document.body.appendChild(script);
+  // The game is gated behind a landing screen's Start button (see
+  // Landing.astro / app.ts's startGame()) --- click through it so the rest
+  // of the suite drives the actual game view, same as a real player would.
+  byTestId(instance.window.document, "start-button").click();
   return instance;
 }
 

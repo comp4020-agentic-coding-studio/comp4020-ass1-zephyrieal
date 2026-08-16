@@ -94,7 +94,7 @@ header nav a:hover {
   padding: 2rem 1rem 1rem;
 }
 
-.hero h1 {
+.hero h2 {
   font-size: clamp(1.7rem, 4vw, 2.6rem);
   margin: 0 0 0.5rem;
 }
@@ -110,6 +110,105 @@ header nav a:hover {
   background: var(--color-bg-alt);
   padding: 0.05rem 0.35rem;
   border-radius: 4px;
+}
+
+/* Full-viewport scroll story: each .landing-slide is one screen, and
+   scroll-snap-type holds the scroll position on exactly one slide at rest,
+   so only one paragraph (or the title, or Start) is ever front-and-centre.
+   position: fixed takes it over the header entirely for an immersive intro
+   rather than sharing the screen with the site nav. */
+.landing {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  background: var(--color-bg);
+}
+
+.landing-slide {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  scroll-snap-align: start;
+
+  /* Without this, a fast trackpad flick can sail straight past this slide to
+     the next snap point instead of stopping here, since "normal" (the
+     default) only guarantees the *final* rest position snaps, not every
+     slide in between. */
+  scroll-snap-stop: always;
+  opacity: 0;
+  transform: translateY(2rem);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.landing-slide.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.landing-cavy {
+  width: clamp(8rem, 18vw, 12rem);
+  height: auto;
+}
+
+.landing-slide h1 {
+  font-size: clamp(2.6rem, 7vw, 5rem);
+  margin: 0;
+  max-width: 20ch;
+}
+
+.landing-slide p {
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  max-width: 42rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.landing-hint {
+  font-size: 1.1rem !important;
+  color: var(--color-text-muted);
+  animation: landing-hint-bounce 2s ease-in-out infinite;
+}
+
+@keyframes landing-hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(0.4rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-slide {
+    transition: none;
+  }
+
+  .landing-hint {
+    animation: none;
+  }
+}
+
+.start-button {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border-color: var(--color-accent);
+  font-weight: 600;
+  font-size: 1.3rem;
+  padding: 0.85rem 2.75rem;
+}
+
+.start-button:hover {
+  filter: brightness(1.08);
 }
 
 /* Timeline: a horizontal progress bar with clickable key-point markers,
