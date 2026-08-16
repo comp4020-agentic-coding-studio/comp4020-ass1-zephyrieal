@@ -129,9 +129,10 @@ function renderStats() {
   const { population: count, averages, personalityCounts } = calculateStatistics(population);
   els.stats.innerHTML = `
     <p>Population: ${count}</p>
-    <ul>
+    <ul class="trait-list">
       ${NUMERIC_TRAITS.map(
-        (trait) => `<li>${TRAIT_LABELS[trait]}: ${averages[trait].toFixed(1)}</li>`,
+        (trait) =>
+          `<li><span class="trait-name">${TRAIT_LABELS[trait]}</span><span class="trait-bar">${traitBar(averages[trait])}</span><span class="trait-value">${averages[trait].toFixed(1)}</span></li>`,
       ).join("")}
     </ul>
     <p class="personality-heading">Personality</p>
