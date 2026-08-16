@@ -700,9 +700,13 @@ header nav a:hover {
   font-size: 0.75rem;
 }
 
-.inspect-personality {
-  margin: 0 0 0.5rem;
+.inspect-detail {
+  margin: 0 0 0.35rem;
   font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.capitalize {
   text-transform: capitalize;
 }
 
@@ -720,7 +724,8 @@ header nav a:hover {
   padding: 0;
   display: flex;
   gap: 1rem;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
 }
 
 /* Buttons */
@@ -762,6 +767,8 @@ button:hover:not(:disabled) {
    every other element here: an explicit margin, never a UA default. */
 .selected-count {
   margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
 }
 
 /* line-height set explicitly (rather than inheriting body's 1.6) so it
@@ -773,11 +780,13 @@ button:hover:not(:disabled) {
   line-height: 1.2;
   margin: 0.4rem 0 0;
   color: #8a2f1f;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .population-count {
   margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
 }
 
 /* Tables */
@@ -808,7 +817,7 @@ td {
 
 .trait-history-label {
   flex: 0 0 6.5rem;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--color-text-muted);
 }
 

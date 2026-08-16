@@ -228,17 +228,15 @@ function renderInspect() {
     return;
   }
   els.inspect.innerHTML = `
-    <p class="inspect-personality">Personality: <strong>${cavy.personality}</strong></p>
     <ul class="trait-list">
       ${NUMERIC_TRAITS.map(
         (trait) =>
           `<li><span class="trait-name">${TRAIT_LABELS[trait]}</span><span class="trait-bar">${traitBar(cavy[trait])}</span><span class="trait-value">${cavy[trait]}</span></li>`,
       ).join("")}
     </ul>
-    <ul>
-      <li>Breed: ${BREED_LABELS[cavy.breed]}, coat hue ${cavy.coatHue.toFixed(0)}</li>
-      <li>${cavy.selected ? "Selected as parent" : "Not selected"}</li>
-    </ul>
+    <p class="inspect-detail">Personality: <strong class="capitalize">${cavy.personality}</strong></p>
+    <p class="inspect-detail">Breed: <strong>${BREED_LABELS[cavy.breed]}</strong>, coat hue ${cavy.coatHue.toFixed(0)}</p>
+    <p class="inspect-detail">${cavy.selected ? "Selected as parent" : "Not selected"}</p>
   `;
   els.keepButton.disabled = false;
   els.keepButton.textContent = cavy.selected ? "UN-KEEP" : "KEEP";
