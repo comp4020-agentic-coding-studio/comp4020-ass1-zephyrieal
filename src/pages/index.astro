@@ -1,18 +1,39 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import Timeline from "../components/Timeline.astro";
+import HistoricalPanel from "../components/HistoricalPanel.astro";
+import Simulation from "../components/Simulation.astro";
+import CavyInspector from "../components/CavyInspector.astro";
+import SelectionPanel from "../components/SelectionPanel.astro";
+import GenerationSummary from "../components/GenerationSummary.astro";
+import FinalComparison from "../components/FinalComparison.astro";
 ---
 
-<Layout title="COMP4020 prototype">
-  <h1>COMP4020 prototype</h1>
-  <p data-testid="intro">
-    Replace this with your prototype. This week's brief is on the course website;
-    <code>spec/README.md</code> explains how the checks in this repo relate to it.
-  </p>
+<Layout title="Interactive Guinea Pig Domestication">
+  <section class="hero">
+    <h1>Interactive Guinea Pig Domestication</h1>
+    <p class="hero-intro">
+      Six thousand years ago, every wild cavy fled anything that moved. Select the
+      parents of each new generation and watch a population slowly become something
+      else &mdash; run <span class="seed" data-testid="seed"></span>.
+    </p>
+  </section>
+
+  <Timeline />
+  <HistoricalPanel />
+
+  <div class="workspace">
+    <Simulation />
+    <div class="sidebar">
+      <CavyInspector />
+      <SelectionPanel />
+    </div>
+  </div>
+
+  <GenerationSummary />
+  <FinalComparison />
 </Layout>
 
 <script>
-  const intro = document.querySelector<HTMLElement>('[data-testid="intro"]');
-  if (intro) {
-    intro.dataset.ready = "true";
-  }
+  import "../scripts/app";
 </script>

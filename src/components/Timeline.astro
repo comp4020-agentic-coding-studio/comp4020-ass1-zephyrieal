@@ -1,0 +1,52 @@
+---
+import { ERAS, TIMELINE_SPAN_GENERATIONS } from "../data/timeline";
+
+// Position each era along the bar by how far into the span its
+// minGeneration falls, so "Wild Cavies" sits at the left end and the final
+// era sits at the right end regardless of how many eras there are.
+function positionPercent(minGeneration: number): number {
+  const span = TIMELINE_SPAN_GENERATIONS - 1;
+  return span <= 0 ? 0 : Math.min(100, Math.max(0, ((minGeneration - 1) / span) * 100));
+}
+---
+
+<section class="timeline" aria-label="Domestication timeline" data-testid="timeline-section">
+  <h2 class="visually-hidden">Timeline</h2>
+  <div class="timeline-scroll">
+    <div class="timeline-track" data-testid="timeline-track">
+      <div class="timeline-bar" aria-hidden="true">
+        <div class="timeline-bar-fill" data-testid="timeline-fill"></div>
+      </div>
+      <ol class="timeline-points">
+        {
+          ERAS.map((era, index) => (
+            // Eras aren't evenly spaced by generation, so two adjacent points
+            // can land close enough together that their labels would overlap
+            // (e.g. Wild Cavies at gen 1 and Early Human Interaction at gen
+            // 2). Alternating each label above/below the bar doubles the
+            // effective spacing on either side and resolves that generically,
+            // without hardcoding which specific pair is too close.
+            <li
+              class={`timeline-point ${index % 2 === 1 ? "timeline-point-above" : ""}`}
+              style={`left: ${positionPercent(era.minGeneration)}%`}
+            >
+              <button
+                type="button"
+                class="timeline-era"
+                data-era-id={era.id}
+                data-testid="timeline-era-button"
+              >
+                <span class="timeline-era-dot" aria-hidden="true"></span>
+                <span class="timeline-era-text">
+                  <span class="timeline-era-years">{era.years}</span>
+                  <span class="timeline-era-label">{era.label}</span>
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+  <p class="timeline-caption" data-testid="timeline-caption"></p>
+</section>
