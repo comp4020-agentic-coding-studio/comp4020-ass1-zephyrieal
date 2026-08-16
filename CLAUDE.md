@@ -160,3 +160,140 @@ catching you out, a fact about the stack the agent keeps getting wrong --- write
 it down here. Growing this file is the work of harness engineering, and the gap
 between this boilerplate and your own version is part of what your prototype
 says about the developer you're becoming.
+
+## Project sequencing
+
+This project has two build prompts, run in order:
+
+1. `Iteration_1___Functional_Prototype_Prompt.md` --- plain HTML/CSS/JS, no framework,
+   coloured circles/shapes only. Goal: prove the selection→inheritance→population-change
+   loop works. No visual polish. **Done.** Lives untouched in `prototype/` as the
+   reference implementation and its regression harness (`prototype/experiments.js`).
+2. `Astro_Interactive_Guinea_Pig_Domestication___AI_Build_Prompt.md` --- the Astro rebuild.
+   **Landed.** The simulation core (population, selection, inheritance, statistics ---
+   the pure functions) was ported unchanged in behaviour from `prototype/js/*.js` to
+   `src/lib/sim/*.ts`, and the presentation layer (historical timeline/eras, storytelling
+   panels, per-generation narrative feedback, final wild-vs-modern comparison, warm
+   editorial visual system) was rebuilt around it in Astro, with no UI framework
+   installed --- `src/scripts/app.ts`/`render.ts` are the same vanilla-TS,
+   physics-loop-and-DOM-reconciliation architecture as `prototype/js/main.js`/`render.js`,
+   just typed and extended.
+
+Both phases are complete. The rules below (simulation architecture, deterministic RNG,
+the six selection experiments, personality/curiosity/interaction items, population sanity
+checks) now govern `src/lib/sim/*.ts` and `src/scripts/*.ts` as the live implementation;
+`prototype/` remains as the phase-1 artifact and is not deleted or further modified. Any
+future change to selection/inheritance/trait-variation logic happens in `src/lib/sim/*.ts`
+and must keep `spec/experiments.test.ts` (the six experiments, ported from
+`prototype/experiments.js` into real vitest assertions) green.
+
+## Simulation architecture rule
+
+Simulation logic and rendering must be in separate modules. Concretely:
+
+- `createPopulation()`, `selectAnimal()`, `breedPopulation()`, `inheritTrait()`,
+  `calculateStatistics()`, `advanceGeneration()` must be pure functions: same inputs
+  always produce the same outputs (given a fixed seed), no DOM access, no reading from
+  or writing to UI state.
+- Rendering code may call these functions and read their return values, but must never
+  contain trait math, inheritance math, or selection logic inline.
+- If a change requires touching both a pure simulation function and a rendering
+  component in the same edit, stop and split it into two edits. A single diff that
+  mixes simulation math into a component file is a violation, not a shortcut --- flag it
+  and refactor rather than leaving it in place.
+
+## Deterministic RNG
+
+All randomness in the simulation (trait variation, coat colour inheritance, random
+wandering) must go through a single seeded PRNG utility, not `Math.random()` directly.
+Expose a way to set the seed at simulation start. This is required from the first
+prototype commit onward, not deferred to a later phase --- retrofitting determinism after
+the fact hides bugs that seeded testing would have caught earlier.
+
+## Standing correctness check: the six selection experiments
+
+After ANY change to selection, inheritance, or trait-variation logic --- not just once at
+the start of the project --- run and report the results of all six experiments below.
+This is a required self-check, not an optional demo.
+
+**Experiment A --- select high docility, 10 generations.**
+Expected: average docility at gen 10 is meaningfully higher than gen 1 (not a marginal
+1--2 point drift; should be clearly visible in the stats panel).
+
+**Experiment B --- select high roundness, 10 generations.**
+Expected: same pattern for roundness.
+
+**Experiment C --- select randomly, 10 generations.**
+Expected: no consistent directional trend in any trait across repeated runs. If random
+selection produces the same upward trend as A/B, the inheritance logic is broken
+(likely regressing toward a fixed target rather than toward parent values) --- this is a
+bug, fix it before continuing.
+
+**Experiment D --- select the HIGHEST-skittishness animals, 10 generations.**
+Expected: average skittishness at gen 10 is meaningfully higher than gen 1, and the
+population becomes more likely to flee from the pointer. This proves selection can move
+the population in more than one direction, not just toward docility/roundness.
+
+Report actual before/after numbers for each experiment, not just "looks right." If any
+experiment doesn't match its expected result, treat it as a harness failure: diagnose
+the root cause in the inheritance/selection code, fix it there, and re-run all six
+experiments --- don't just adjust one trait's numbers until the output looks plausible.
+
+**Experiment E --- select FRIENDLY parents, 10 generations.** Expected: the friendly
+share of the population at gen 10 is meaningfully higher than gen 1 (report as counts,
+e.g. "8/10 friendly", not an average --- personality is categorical, not a number).
+
+**Experiment F --- select SHY parents, 10 generations.** Same pattern for shy. Together
+E and F prove personality (categorical) responds to selection the same way the numeric
+traits do.
+
+All six originate in `prototype/experiments.js` (`node prototype/experiments.js`, prints
+before/after numbers) and are additionally enforced as real assertions in
+`spec/experiments.test.ts` against `src/lib/sim/*.ts`, so `pnpm check` fails if a change
+to the Astro build's simulation core breaks any of them.
+
+## Personality, curiosity, and interaction items
+
+- `personality` (`shy`/`neutral`/`friendly`, `simulation.js`) is inherited independently
+  of the numeric traits --- it is NOT a renamed/derived docility. `behaviour.js` applies
+  it as a floor/ceiling/damping on the trait-derived affinity, BEFORE the flee-vs-approach
+  branch decision, not as a post-branch magnitude multiplier --- a multiplier applied
+  after the branch is chosen can scale a reaction but can never flip its sign, which is
+  exactly the bug that let a "friendly" cavy with drifted-low docility get stuck fleeing
+  forever. Any new interaction (a hypothetical future one) must follow the same
+  before-the-branch ordering.
+- `curiosity` is a numeric trait like the other four, driving the toy response
+  (`calculatePlayResponse`) the way `docility` drives the mouse/food responses.
+- Food (🥕) and toy (🧸) are always-present, player-draggable world objects owned by
+  `render.js` --- not simulation entities, no trait math lives in their drag handling.
+  Their pure response functions (`calculateFoodResponse`, `calculatePlayResponse`) live
+  in `behaviour.js` alongside `calculateMouseResponse`, same architecture rule as always.
+- `familiarity` (render.js's per-cavy motion state) is ephemeral, render-only, and reset
+  automatically every generation (new cavy ids = fresh motion-map entries). It must NEVER
+  be written onto a `cavy` object, read by `simulation.js`, or factored into inheritance
+  --- it may only ever soften a mouse-response flee reaction slightly, never override a
+  personality's ceiling into actual approach. This is the "taming an individual is not
+  domesticating a population" distinction the prompt asks for; breaking it would silently
+  make interaction (not selection) the thing that changes the population, which defeats
+  the whole exercise.
+
+## Population sanity checks
+
+On every generation update, verify and report if violated:
+
+- population size stays constant (no silent growth/shrink)
+- all trait values remain within their defined bounds (e.g. 0--100) --- no NaN, no
+  negative values, no overflow past the cap after repeated selection
+- selection is cleared after advancing to the next generation
+- the statistics panel always reflects the population currently on screen, never a
+  stale generation
+
+## What counts as "done" for a phase
+
+A phase is not complete when it renders without errors. It's complete when:
+
+1. the relevant checklist in the prompt file is fully checked off, and
+2. for any phase touching selection/inheritance, all six experiments above pass with
+   reported numbers.
+
+Do not move to visual polish or the next phase until both conditions hold.
