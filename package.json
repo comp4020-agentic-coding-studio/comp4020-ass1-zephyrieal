@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "typecheck": "astro check",
-    "check": "pnpm typecheck && pnpm build && oxlint --ignore-path .gitignore && stylelint \"**/*.css\" --ignore-path .gitignore --allow-empty-input && vitest run",
+    "check": "pnpm typecheck && pnpm build && oxlint --ignore-path .gitignore && stylelint \"**/*.css\" --ignore-path .gitignore --ignore-pattern \"prototype/**\" --allow-empty-input && vitest run",
     "check:evidence": "node scripts/check-evidence.ts",
     "test": "vitest run"
   },

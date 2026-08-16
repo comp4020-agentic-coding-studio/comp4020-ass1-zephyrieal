@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cavy domestication — Iteration 1 prototype</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Cavy domestication prototype</h1>
+      <div class="topbar-stats">
+        <span>Generation <strong data-testid="generation">1</strong></span>
+        <span>Seed <code data-testid="seed"></code></span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="play-area" data-testid="play-area" aria-label="Cavy population">
+        <p class="play-area-hint">Click a cavy to inspect it. Move your cursor near one, or drag the 🥕 food and 🧸 toy, to see how it reacts.</p>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel">
+          <h2>Inspect</h2>
+          <div data-testid="inspect">
+            <p>Click a cavy to inspect it.</p>
+          </div>
+          <button type="button" data-testid="keep-button" disabled>KEEP</button>
+        </section>
+
+        <section class="panel">
+          <h2>Breeding</h2>
+          <p data-testid="selected-count">0 selected (need 2+)</p>
+          <button type="button" data-testid="next-generation" class="primary">NEXT GENERATION</button>
+          <p class="message" data-testid="message"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Population statistics</h2>
+          <div data-testid="stats"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Gen 1 vs current</h2>
+          <div data-testid="comparison"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Timeline</h2>
+          <div class="timeline" data-testid="timeline"></div>
+        </section>
+      </aside>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
