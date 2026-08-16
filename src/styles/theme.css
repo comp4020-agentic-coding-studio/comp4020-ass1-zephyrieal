@@ -1,0 +1,723 @@
+/* Warm, editorial palette — parchment/earth tones, not neon or glassmorphism.
+   Serif display type for headings, system sans-serif for UI/body text. No
+   external font requests: everything here resolves from fonts already on
+   the device, which keeps first paint fast and the page usable offline. */
+:root {
+  --color-bg: #f3e9d8;
+  --color-bg-alt: #eaddc4;
+  --color-text: #3b2a1e;
+  --color-text-muted: #6b5a48;
+  --color-accent: #b5563c;
+  --color-accent-ink: #fff8ef;
+  --color-secondary: #6b7a5e;
+  --color-highlight: #c99a3d;
+  --color-border: #d8c7a8;
+  --font-display: georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --font-ui: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, sans-serif;
+  --radius: 6px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  line-height: 1.6;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 0 3rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--color-text);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+header {
+  padding: 0.6rem 1rem;
+  background: var(--color-bg-alt);
+  border-bottom: 1px solid var(--color-border);
+}
+
+header nav a {
+  font-family: var(--font-ui);
+  text-decoration: none;
+}
+
+header nav a:hover {
+  text-decoration: underline;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  margin: 0 0 0.5rem;
+}
+
+.hero-intro {
+  max-width: 42rem;
+  margin: 0 auto;
+  color: var(--color-text-muted);
+}
+
+.seed {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  background: var(--color-bg-alt);
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+}
+
+/* Timeline: a horizontal progress bar with clickable key-point markers,
+   rather than a row of equal-width boxes — position along the bar reflects
+   how far into the generation span each era falls. */
+.timeline-scroll {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.timeline-track {
+  position: relative;
+  margin: 0 auto;
+
+  /* Single source of truth for how far the bar sits from the track's top:
+     both the padding below and .timeline-point's `top` (which padding-top
+     does NOT shift, since absolute offsets are relative to the padding box
+     itself) read this same value, so they can't drift out of sync again. */
+  --timeline-marker-offset: 5.5rem;
+
+  padding: var(--timeline-marker-offset) 0.75rem;
+  max-width: 900px;
+  min-width: 640px;
+}
+
+.timeline-bar {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.timeline-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--color-accent);
+  transition: width 0.4s ease;
+}
+
+.timeline-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline-point {
+  position: absolute;
+  top: var(--timeline-marker-offset);
+  transform: translateX(-50%);
+}
+
+/* Shift the whole label stack up by its own height so its bottom edge (the
+   dot, moved there by flex-direction: column-reverse below) lands back on
+   the bar line, instead of the stack hanging below it like the default. */
+.timeline-point-above {
+  transform: translate(-50%, -100%);
+}
+
+.timeline-era {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Distance from the dot to the label stack — also how far the hover
+     highlight (painted on .timeline-era-text below, not the whole button)
+     sits from the bar, so hovering never covers the bar line itself. */
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  width: max-content;
+  max-width: 8rem;
+  text-align: center;
+}
+
+.timeline-point-above .timeline-era {
+  flex-direction: column-reverse;
+}
+
+.timeline-era-dot {
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--color-bg-alt);
+  border: 2px solid var(--color-border);
+}
+
+.timeline-point-above .timeline-era-dot {
+  margin-top: 0;
+  margin-bottom: -9px;
+}
+
+.timeline-era:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Cancel the generic button:hover background (theme.css base rules) — it
+   would otherwise paint a solid box over the whole button, dot included,
+   right on top of the bar. The hover highlight lives on .timeline-era-text
+   instead, offset from the dot by the gap above. */
+.timeline-era:hover:not(:disabled) {
+  background: none;
+}
+
+.timeline-era-text {
+  display: block;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius);
+  transition: background 0.15s ease;
+}
+
+.timeline-era:hover:not(:disabled) .timeline-era-text {
+  background: var(--color-highlight);
+}
+
+.timeline-era.current .timeline-era-dot {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+.timeline-era.focused .timeline-era-dot {
+  border-color: var(--color-highlight);
+  background: var(--color-highlight);
+}
+
+.timeline-era-years {
+  display: block;
+  font-size: 0.65rem;
+}
+
+.timeline-era-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.15;
+}
+
+.timeline-caption {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0.4rem 0 0;
+}
+
+/* Historical panel */
+.historical-panel {
+  max-width: 700px;
+  margin: 1rem auto;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.historical-title {
+  font-size: 1.2rem;
+  margin: 0 0 0.4rem;
+}
+
+.historical-body {
+  margin: 0;
+}
+
+/* Workspace layout */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 1rem auto;
+  padding: 0 1rem;
+  align-items: start;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inspector,
+.selection-panel,
+.generation-summary {
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.1rem;
+}
+
+/* .generation-summary lives outside .workspace (it's a full-width section
+   below it, not a sidebar child), so it inherits <main>'s box (max-width
+   1200px, no horizontal padding) instead of .workspace's (max-width 1100px,
+   further inset 1rem by padding for its game/sidebar children). Matching
+   max-width to workspace's content width (1100px minus that 1rem inset each
+   side) makes this card's edges land exactly on the game/columns' edges at
+   every viewport, instead of drifting wider as the two boxes' containing
+   blocks diverge. */
+.generation-summary {
+  max-width: calc(1100px - 2rem);
+  margin: 1rem auto;
+}
+
+.inspector h2,
+.selection-panel h2,
+.generation-summary h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+/* Reserve room for the full selected-cavy layout (id line, personality,
+   5-trait list, breed/selected lines) up front, so clicking a cavy doesn't
+   grow the sidebar and shove the panels below it down the page. */
+.inspect-body {
+  min-height: 16rem;
+}
+
+/* Simulation */
+.play-area {
+  position: relative;
+  height: 60vh;
+  min-height: 380px;
+  background-color: #a3bf82;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCc+CjxyZWN0IHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgZmlsbD0nI2EzYmY4MicvPgo8cGF0aCBkPSdNMTIgNjQgUTExIDU2IDEzIDUwJyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8cGF0aCBkPSdNMTcgNjQgUTE5IDU3IDE2IDUxJyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8cGF0aCBkPSdNNDAgNjQgUTM5IDU1IDQxIDQ5JyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8cGF0aCBkPSdNNDUgNjQgUTQ3IDU2IDQ0IDUwJyBzdHJva2U9JyNjM2Q5YTAnIHN0cm9rZS13aWR0aD0nMS42JyBmaWxsPSdub25lJyBzdHJva2UtbGluZWNhcD0ncm91bmQnIG9wYWNpdHk9JzAuOCcvPgo8L3N2Zz4K");
+  background-repeat: repeat;
+  background-size: 64px 64px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Fence perimeter, purely decorative — drawn as four static bands inside the
+   play-area so it never interferes with the container's own bounding-rect
+   maths (cavy wander clamp, food/toy drag clamp all read the play-area's own
+   rect, not these children). They sit first in the DOM, so cavies/food/toy
+   (appended later by render.ts) paint on top and can wander right up against
+   the fence line without ever being hidden behind it. */
+.fence-edge {
+  position: absolute;
+  pointer-events: none;
+}
+
+.fence-edge-top,
+.fence-edge-bottom {
+  left: 0;
+  right: 0;
+  height: 24px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2MCcgaGVpZ2h0PScyOCc+CjxyZWN0IHg9JzAnIHk9JzknIHdpZHRoPSc2MCcgaGVpZ2h0PSc1JyBmaWxsPScjNmI0YTMyJyBzdHJva2U9JyM0YTMzMjAnIHN0cm9rZS13aWR0aD0nMC42Jy8+CjxyZWN0IHg9JzAnIHk9JzE5JyB3aWR0aD0nNjAnIGhlaWdodD0nNScgZmlsbD0nIzZiNGEzMicgc3Ryb2tlPScjNGEzMzIwJyBzdHJva2Utd2lkdGg9JzAuNicvPgo8cmVjdCB4PScyMycgeT0nMCcgd2lkdGg9JzgnIGhlaWdodD0nMjgnIGZpbGw9JyM4YTZhNGEnIHN0cm9rZT0nIzRhMzMyMCcgc3Ryb2tlLXdpZHRoPScwLjgnLz4KPHJlY3QgeD0nMjMnIHk9JzAnIHdpZHRoPSc4JyBoZWlnaHQ9JzQnIGZpbGw9JyNjOWE4NzcnLz4KPC9zdmc+Cg==");
+  background-repeat: repeat-x;
+  background-size: 60px 24px;
+}
+
+.fence-edge-top {
+  top: 0;
+}
+
+.fence-edge-bottom {
+  bottom: 0;
+}
+
+.fence-edge-left,
+.fence-edge-right {
+  top: 0;
+  bottom: 0;
+  width: 24px;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyOCcgaGVpZ2h0PSc2MCc+CjxyZWN0IHg9JzknIHk9JzAnIHdpZHRoPSc1JyBoZWlnaHQ9JzYwJyBmaWxsPScjNmI0YTMyJyBzdHJva2U9JyM0YTMzMjAnIHN0cm9rZS13aWR0aD0nMC42Jy8+CjxyZWN0IHg9JzE5JyB5PScwJyB3aWR0aD0nNScgaGVpZ2h0PSc2MCcgZmlsbD0nIzZiNGEzMicgc3Ryb2tlPScjNGEzMzIwJyBzdHJva2Utd2lkdGg9JzAuNicvPgo8cmVjdCB4PScwJyB5PScyMycgd2lkdGg9JzI4JyBoZWlnaHQ9JzgnIGZpbGw9JyM4YTZhNGEnIHN0cm9rZT0nIzRhMzMyMCcgc3Ryb2tlLXdpZHRoPScwLjgnLz4KPHJlY3QgeD0nMjQnIHk9JzIzJyB3aWR0aD0nNCcgaGVpZ2h0PSc4JyBmaWxsPScjYzlhODc3Jy8+Cjwvc3ZnPgo=");
+  background-repeat: repeat-y;
+  background-size: 24px 60px;
+}
+
+.fence-edge-left {
+  left: 0;
+}
+
+.fence-edge-right {
+  right: 0;
+}
+
+.play-area-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.cavy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 2px solid rgb(59 42 30 / 30%);
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  background-color: var(--color-bg-alt);
+}
+
+/* Placeholder flat-circle cavies (no hand-drawn art) fill their whole square
+   box, so a plain box outline reads fine there. */
+.cavy.selected:not(.has-art),
+.cavy:hover:not(.has-art) {
+  outline: 3px solid var(--color-highlight);
+  outline-offset: 2px;
+}
+
+/* Breeds with real hand-drawn art (render.ts's BREED_ART) drop the
+   placeholder circle entirely and let the SVG body show through instead. */
+.cavy.has-art {
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+/* Without this, the generic button:hover rule below (higher specificity,
+   :not(:disabled) counts as a class) repaints a solid highlight-coloured
+   square behind the transparent SVG on hover — exactly the box this is
+   meant to avoid. */
+.cavy.has-art:hover {
+  background-color: transparent;
+}
+
+.cavy-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* All hand-drawn art faces left. render.ts toggles this class per-frame based
+   on which side of the cavy the cursor is on, mirroring just the inner SVG so
+   it never fights the outer .cavy element's own translate(x,y) transform. */
+.cavy.facing-right .cavy-svg {
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+
+/* A box outline around real art would draw a rectangle around a lot of empty
+   transparent space (the sprite's silhouette rarely fills its own square
+   viewBox). Stacking eight zero-blur drop-shadows, one per compass direction,
+   instead traces a crisp, solid ring that hugs the actual opaque pixels of
+   the guinea pig — each pass is a sharp offset copy of the same silhouette
+   (no blur to soften it), so together they read as a single solid outline
+   rather than a soft glow. */
+.cavy.has-art.selected .cavy-svg,
+.cavy.has-art:hover .cavy-svg {
+  filter:
+    drop-shadow(2px 0 0 var(--color-highlight))
+    drop-shadow(-2px 0 0 var(--color-highlight))
+    drop-shadow(0 2px 0 var(--color-highlight))
+    drop-shadow(0 -2px 0 var(--color-highlight))
+    drop-shadow(1.4px 1.4px 0 var(--color-highlight))
+    drop-shadow(-1.4px 1.4px 0 var(--color-highlight))
+    drop-shadow(1.4px -1.4px 0 var(--color-highlight))
+    drop-shadow(-1.4px -1.4px 0 var(--color-highlight));
+}
+
+/* The two coat swatches pre-tagged in the sprite (see src/assets/cavies/) are
+   recoloured per cavy by render.ts setting `fill` directly on each cavy's own
+   cloned path nodes (not via CSS) — a shared <use> instance's cloned tree
+   doesn't reliably pick up CSS custom properties in Chromium, so each cavy
+   with real art gets its own real DOM nodes instead of a shared <symbol>
+   reference. Everything else in the art (outline, eyes, white patches, nose)
+   has no class here, so it can never be affected. */
+
+/* Quick, decorative "wheek" vocalisation cue — hidden by default, briefly
+   shown above a cavy that's actively approaching the cursor or drawn toward
+   food. Purely cosmetic (render.ts owns when it appears), so it's inert to
+   clicks and hidden from the accessibility tree. */
+.wheek-bubble {
+  position: absolute;
+  top: -1.5rem;
+  left: 50%;
+  transform: translate(-50%, 4px);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.wheek-bubble.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.interaction-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  filter: drop-shadow(0 2px 3px rgb(59 42 30 / 30%));
+}
+
+.interaction-item svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.interaction-item:active {
+  cursor: grabbing;
+}
+
+/* Inspector */
+.trait-list {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+
+.trait-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  margin-bottom: 0.15rem;
+}
+
+.trait-name {
+  flex: 0 0 6rem;
+  color: var(--color-text-muted);
+}
+
+.trait-bar {
+  position: relative;
+  display: inline-block;
+  width: 90px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.trait-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+}
+
+.trait-value {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.inspect-personality {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+}
+
+.personality-heading {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.personality-counts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.85rem;
+}
+
+/* Buttons */
+button {
+  font: inherit;
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background: var(--color-highlight);
+}
+
+.next-generation {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  border-color: var(--color-accent);
+  width: 100%;
+  margin-top: 0.5rem;
+  font-weight: 600;
+}
+
+.next-generation:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.message {
+  min-height: 1.2em;
+  color: #8a2f1f;
+  font-size: 0.85rem;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.25rem 0.4rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Generation summary */
+.generation-narrative {
+  margin: 0 0 0.75rem;
+}
+
+.trait-history-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.trait-history-label {
+  flex: 0 0 6.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.trait-history-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 40px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.trait-history-bar {
+  display: inline-block;
+  width: 8px;
+  background: var(--color-secondary);
+  border-radius: 2px 2px 0 0;
+}
+
+/* Final comparison */
+
+/* Same containing-block mismatch as .generation-summary above: this section
+   sits directly in <main> (max-width 1200px, no horizontal padding) rather
+   than inside .workspace (max-width 1100px, 1rem inset), so its max-width
+   is set to match .workspace's content width instead of an unrelated value,
+   keeping its edges aligned with the game/sidebar columns above it. */
+.final-comparison {
+  max-width: calc(1100px - 2rem);
+  margin: 1.5rem auto;
+  padding: 1rem 1.25rem;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius);
+}
+
+.final-message {
+  font-family: var(--font-display);
+  font-style: italic;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+/* Responsive */
+@media (width <= 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (width <= 600px) {
+  .hero {
+    padding: 1.5rem 1rem 0.75rem;
+  }
+
+  .play-area {
+    height: 50vh;
+    min-height: 320px;
+  }
+}
