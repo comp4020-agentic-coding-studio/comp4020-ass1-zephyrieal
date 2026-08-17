@@ -1,14 +1,5 @@
 # Process overview
 
-A reading-guide to how the work came together: a map to your process, not an
-essay about it. Markers read this file and follow its citations; they don't
-trawl the repo for evidence you didn't point at, so if a moment mattered, cite
-it.
-
-This file is the shape; the course site's
-[assessment page](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#what-you-submit)
-is the requirement, and each brief adds its own word count and moment count.
-
 ## What I built
 
 Built from two prompt docs the user handed over:
@@ -25,14 +16,19 @@ wild-vs-modern comparison.
 
 ## The moments that mattered
 
-1. **Porting the sim without quietly breaking it.**
-   Phase 1 (`prototype/js/*.js`) already worked, proven by six experiments in
-   `prototype/experiments.js`. Easiest path porting to TypeScript: trust the
-   rewrite and move on. Instead I ported all six experiments into real
-   `vitest` assertions (`spec/experiments.test.ts`) against the new
-   `src/lib/sim/*.ts`, so a future change that breaks a trend fails CI
-   instead of just looking wrong in the stats panel.
-   [`4b4eab1`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-zephyrieal/commit/4b4eab1ddae050d45b7005be27d07f5e5c44ea1d)
+1. **Documentation instead of conversation.**
+   The obvious path was to describe the idea to the AI in chat and figure out
+   the product turn by turn. I tried that first, and the back-and-forth got
+   expensive fast: re-explaining constraints, repeating context, drifting
+   from the design I actually had in my head. Instead I wrote the whole
+   product down first, as two prompt docs
+   (`Iteration_1___Functional_Prototype_Prompt.md`, then the Astro rebuild
+   prompt), and handed over the finished spec rather than negotiating it live.
+   The durable rules inside them (the simulation/rendering split,
+   deterministic RNG, the six selection experiments) went into `CLAUDE.md` so
+   they'd outlive the prompt that introduced them, instead of only existing
+   in a chat transcript no future session reads.
+   [`0397c87`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-zephyrieal/commit/0397c870e38a60090ea051efaafe9aac326d2ba0)
 
 2. **A bug fixed in the harness, not just the diff.**
    Phase 1 had a real bug: a "friendly" cavy with drifted-low docility could
@@ -63,15 +59,3 @@ wild-vs-modern comparison.
    thirty rapid small wheel events to mimic a real flick, instead of trusting
    the clean one, which is what actually caught it.
    [`6959d4d`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-zephyrieal/commit/6959d4dbe8dc50017c2164c6634e0251d8e22dff)
-
-## Before you ship
-
-`pnpm check:evidence` verifies your citations resolve to real commits, that the
-current reflection entry is in `reflections/`, and that your `CLAUDE.md` is
-there, before a marker ever opens the file. It checks that your map is
-traceable, not that it is good: the marker judges whether your small,
-deliberately chosen set of moments shows real judgement and reflection. A green
-check is not a substitute for that curation.
-
-Images are deliberately not checked, because whether one renders is visible the
-moment you look. Open this file on GitHub and look at it before you ship.

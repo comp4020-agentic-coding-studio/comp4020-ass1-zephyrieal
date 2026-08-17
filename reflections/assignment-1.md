@@ -2,24 +2,28 @@
 
 **What was the breakthrough that moved the work forward?**
 
-Realising a bug I'd already "tested" could still be sitting there. I built the
-scroll-snapped landing screen from the Astro build prompt, checked it with one
-clean Playwright `mouse.wheel()` call, and it looked perfect: one slide per
-scroll. Then the user told me scrolling skipped past the first paragraph. My
-test event landed exactly on a slide boundary; a real fast trackpad flick
-doesn't. The actual cause was `scroll-snap-stop`'s default only guaranteeing
-you land on some slide, not every one you pass through on the way. The fix was
-a one-line CSS change. The real lesson was that "I tested it" only counts if
-the test acts like a real person, not the easiest thing to script.
+Realising that talking to the AI was not actually the fast way to build this.
+My first attempt was the obvious one: describe the idea in chat and steer it
+turn by turn. The back-and-forth got expensive fast — re-explaining the same
+constraint, watching the design drift from what I actually had in my head each
+round. The breakthrough was giving that up and writing the whole product down
+first, as two full prompt docs (a plain-JS functional prototype, then the real
+Astro rebuild), and handing over a finished spec instead of negotiating one
+live. That's also what pushed the constraints that mattered — the six
+selection experiments, the personality-before-behaviour rule, the population
+sanity checks — into `CLAUDE.md`, so they'd survive past the one prompt that
+introduced them.
 
 **What did this work change about who I want to be as a developer?**
 
-I want to trust a fix, not just hope it holds. Both prompt docs the user gave
-me, the phase 1 functional prototype prompt and the phase 2 Astro rebuild
-prompt, came with real constraints baked in: the six selection experiments,
-the personality rules, the population sanity checks. The moments that stuck
-were the ones where getting it right meant writing the rule down somewhere
-durable, `CLAUDE.md`, a spec test, instead of just patching the one file that
-broke. That's the habit I want to keep going forward: when a fix comes from a
-real constraint and not just a one-off typo, it belongs in the harness, not
-just the diff.
+I want to test like an actual person, not like whatever's easiest to script. I
+asked for a scroll-snapped landing screen, and the automated check that came
+back looked clean — one slide per scroll. But when I actually used it with a
+fast trackpad flick, it skipped straight past the first paragraph: the test
+event had landed exactly on a slide boundary, and a real flick doesn't. Only
+once I reported that back did the real cause turn up — `scroll-snap-stop`'s
+default guarantees you land on *some* slide, not every one you pass through.
+That was the moment "it passed the check" stopped being enough for me. Going
+forward I want to keep closing that loop myself before calling something done,
+and to push any fix that comes from a real constraint into something durable —
+a rule in `CLAUDE.md`, a test — instead of leaving it as a one-off patch.
