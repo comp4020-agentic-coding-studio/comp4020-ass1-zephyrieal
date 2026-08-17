@@ -18,7 +18,7 @@ import {
   type NumericTrait,
   type Statistics,
 } from "../lib/sim/simulation";
-import { createRenderer } from "./render";
+import { createRenderer, createCavyPortrait } from "./render";
 import { describeGenerationChange } from "../lib/narrative";
 import { ERAS, TIMELINE_SPAN_GENERATIONS, currentEra, isEraUnlocked, type Era } from "../data/timeline";
 import { historicalEventForEra } from "../data/historicalEvents";
@@ -58,6 +58,48 @@ function qs<T extends Element>(testId: string): T {
   return el;
 }
 
+// Short synthesised tones, not sound files — there's no natural recording for
+// either of these the way there's a real cavy wheek, so they're generated
+// with the Web Audio API instead. Purely decorative: unsupported/blocked
+// playback is swallowed rather than surfaced to the player.
+function playTone(frequency: number, durationSeconds: number, peakVolume: number) {
+  const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtx) return;
+  try {
+    const ctx = new AudioCtx();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(peakVolume, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationSeconds);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + durationSeconds);
+    oscillator.onended = () => ctx.close();
+  } catch {
+    // Decorative only; ignore playback failures.
+  }
+}
+
+function playEraChangeDing() {
+  playTone(880, 0.5, 0.25);
+}
+
+function playButtonClickSound() {
+  playTone(320, 0.08, 0.18);
+}
+
+// Delegated so every button gets the click sound, including ones added
+// later, without wiring each one by hand. Disabled buttons never dispatch a
+// click event, so a disabled KEEP/Next Generation stays silent for free.
+document.addEventListener("click", (event) => {
+  if (event.target instanceof Element && event.target.closest("button")) {
+    playButtonClickSound();
+  }
+});
+
 const els = {
   landing: qs<HTMLElement>("landing-section"),
   gameView: qs<HTMLElement>("game-view"),
@@ -68,6 +110,7 @@ const els = {
   stats: qs<HTMLElement>("stats"),
   comparison: qs<HTMLElement>("comparison"),
   finalComparisonSection: qs<HTMLElement>("final-comparison-section"),
+  restartButton: qs<HTMLButtonElement>("restart-button"),
   inspect: qs<HTMLElement>("inspect"),
   keepButton: qs<HTMLButtonElement>("keep-button"),
   nextButton: qs<HTMLButtonElement>("next-generation"),
@@ -237,6 +280,7 @@ function renderInspect() {
     <p class="inspect-detail">Personality: <strong class="capitalize">${cavy.personality}</strong></p>
     <p class="inspect-detail">Breed: <strong>${BREED_LABELS[cavy.breed]}</strong>, coat hue ${cavy.coatHue.toFixed(0)}</p>
     <p class="inspect-detail">${cavy.selected ? "Selected as parent" : "Not selected"}</p>
+    <div class="inspect-portrait" aria-hidden="true">${createCavyPortrait(cavy).outerHTML}</div>
   `;
   els.keepButton.disabled = false;
   els.keepButton.textContent = cavy.selected ? "UN-KEEP" : "KEEP";
@@ -289,6 +333,7 @@ els.keepButton.addEventListener("click", () => {
 
 els.nextButton.addEventListener("click", () => {
   try {
+    const previousEra = currentEra(generation);
     const result = advanceGeneration(population, generation, simRng, { size: POPULATION_SIZE });
     population = clearSelection(result.population);
     generation = result.generation;
@@ -297,6 +342,7 @@ els.nextButton.addEventListener("click", () => {
     generationHistory.push({ generation, ...calculateStatistics(population) });
     setMessage("");
     renderAll();
+    if (currentEra(generation).id !== previousEra.id) playEraChangeDing();
   } catch (error) {
     setMessage(error instanceof Error ? error.message : String(error));
   }
@@ -312,6 +358,15 @@ for (const button of eraButtons) {
     renderTimeline();
   });
 }
+
+// A fresh seed and a real reload, rather than resetting population/generation/
+// history in place, so "New Game" can't drift out of sync with any state this
+// file tracks (gen1Stats, generationHistory, focusedEraId, and so on).
+els.restartButton.addEventListener("click", () => {
+  const freshParams = new URLSearchParams(window.location.search);
+  freshParams.set("seed", String(Date.now()));
+  window.location.search = freshParams.toString();
+});
 
 // Deferred until the player clicks Start: syncPopulation (called from
 // renderAll) and the RAF loop in renderer.start() both read the play area's

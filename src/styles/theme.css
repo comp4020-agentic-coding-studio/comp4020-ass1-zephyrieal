@@ -710,6 +710,20 @@ header nav a:hover {
   text-transform: capitalize;
 }
 
+/* Same breed art/coat-colour rendering as the live .cavy elements
+   (createCavyPortrait in render.ts), just static and larger, filling the
+   headroom .inspect-body's min-height reserves above the KEEP button. */
+.inspect-portrait {
+  display: flex;
+  justify-content: center;
+  margin: 0.25rem 0 0;
+}
+
+.inspect-portrait .cavy-portrait-svg {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
 .personality-heading {
   margin: 0.75rem 0 0.25rem;
   font-size: 0.75rem;
@@ -859,6 +873,18 @@ td {
   font-style: italic;
   text-align: center;
   margin-top: 0.75rem;
+}
+
+.final-actions-hint {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.restart-button {
+  display: block;
+  margin: 0 auto;
 }
 
 /* Responsive */

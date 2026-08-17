@@ -22,6 +22,7 @@ import peruvianSprite from "../assets/cavies/peruvian.svg?raw";
 import cuySprite from "../assets/cavies/cuy.svg?raw";
 import carrotArt from "../assets/items/carrot.svg?raw";
 import toyArt from "../assets/items/toy.svg?raw";
+import wheekSoundUrl from "../assets/sounds/wheek.mp3";
 
 const FLEE_ACCEL = 0.75;
 const APPROACH_ACCEL = 0.55;
@@ -55,6 +56,18 @@ const WHEEK_VISIBLE_MS = 700;
 const WHEEK_COOLDOWN_MIN_MS = 2500;
 const WHEEK_COOLDOWN_MAX_MS = 6000;
 const WHEEK_TEXTS = ["Wheek!", "Wheek wheek!"];
+const WHEEK_VOLUME = 0.4;
+
+// A fresh Audio instance per call (rather than one shared/reused element) so
+// two cavies wheeking close together don't cut each other off; playback
+// failures (autoplay policy, no audio support) are decorative-only and never
+// surfaced to the user.
+function playWheekSound() {
+  if (typeof Audio === "undefined") return;
+  const audio = new Audio(wheekSoundUrl);
+  audio.volume = WHEEK_VOLUME;
+  audio.play().catch(() => {});
+}
 // How far past a cavy's own centreline the cursor must sit before the art
 // flips — a plain >/< comparison would flicker constantly while the cursor
 // drifts back and forth right at the centre.
@@ -257,6 +270,27 @@ function naturalCoatColors(coatHue: number, breed: Breed): { a: string; b: strin
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+// Same breed art + coat-colour lookup the live population uses (see
+// makeElement/styleElement below), but as a standalone static snapshot for
+// the Inspect panel's portrait rather than a tracked, animated element — no
+// motion map entry, no click handler, no wheek bubble.
+export function createCavyPortrait(cavy: Cavy): SVGSVGElement {
+  const svgNs = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNs, "svg");
+  svg.setAttribute("class", "cavy-portrait-svg");
+  svg.setAttribute("viewBox", "0 0 2048 2048");
+  const template = bodyTemplate(BREED_ART[cavy.breed]);
+  if (template) {
+    for (const child of Array.from(template.children)) {
+      svg.appendChild(document.importNode(child, true));
+    }
+  }
+  const { a, b } = naturalCoatColors(cavy.coatHue, cavy.breed);
+  for (const path of svg.querySelectorAll(".coat-a")) path.setAttribute("fill", a);
+  for (const path of svg.querySelectorAll(".coat-b")) path.setAttribute("fill", b);
+  return svg;
 }
 
 interface Motion {
@@ -644,6 +678,7 @@ export function createRenderer({ container, rng, onCavyClick }: CreateRendererOp
         ) {
           bubble.textContent = WHEEK_TEXTS[Math.floor(rng() * WHEEK_TEXTS.length)];
           bubble.classList.add("visible");
+          playWheekSound();
           pos.wheekHideAt = now + WHEEK_VISIBLE_MS;
           pos.wheekCooldownUntil = now + WHEEK_COOLDOWN_MIN_MS + rng() * (WHEEK_COOLDOWN_MAX_MS - WHEEK_COOLDOWN_MIN_MS);
         } else if (bubble.classList.contains("visible") && now >= pos.wheekHideAt) {
